@@ -3,7 +3,17 @@ require 'spec_helper'
 describe Elasticsearch::Query do
   context "#field" do
     it "returns a Field object" do
-      described_class.build.field(:foo).should be_a(Elasticsearch::Query::Field)
+      expect(Elasticsearch::Query::Builder.new.field(:foo)).to be_a(Elasticsearch::Query::Field)
+    end
+
+    it "should provide boolean proxies for one-shot conditions" do
+      r = described_class.build do
+        field(:foo).must.be("hello")
+        field(:foo).must_not.be("is it me")
+        field(:foo).should.be("you're looking for")
+      end
+      p r
+      r[:query][:bool][:must].should be_present
     end
   end
 
@@ -12,7 +22,7 @@ describe Elasticsearch::Query do
       f = field_name
       j = described_class.build do
         send(f) { field(:x).is(:y) }
-      end.as_json
+      end
 
       j[:query].should have_key :bool
       j[:query][:bool].should have_key f
@@ -25,7 +35,7 @@ describe Elasticsearch::Query do
       j = described_class.build do
         send(f) { field(:x).is(:y) }
         send(f) { field(:m).is(:n) }
-      end.as_json
+      end
 
       j[:query][:bool][f].length.should == 2
       j[:query][:bool][f].should =~ [{term: {x: "y"}}, {term: {m: "n"}}]
@@ -57,7 +67,7 @@ describe Elasticsearch::Query do
     end
 
     it "builds the aggregation" do
-      subject.as_json[:query][:aggs]["foo_min"].should == {min: {field: :foo}}
+      subject[:query][:aggs]["foo_min"].should == {min: {field: :foo}}
     end
   end
 
@@ -69,7 +79,7 @@ describe Elasticsearch::Query do
             must     { field(:foo).is(:bar) }
             must_not { field(:baz).is(:bin) }
           end
-        end.as_json
+        end
       end
 
       it "should create a filter" do
@@ -104,7 +114,7 @@ describe Elasticsearch::Query do
 
             must { field(:whizz).is(:bang) }
           end
-        end.as_json
+        end
       end
 
       it "should construct both a query and subqueries" do

@@ -9,7 +9,7 @@ require 'active_support/core_ext'
 module Elasticsearch
   class Query
   	def self.build(&block)
-  		Builder.new(&block)
+  		Builder.new(&block).as_json
   	end
   end
 end

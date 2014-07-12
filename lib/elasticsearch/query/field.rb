@@ -1,7 +1,7 @@
 module Elasticsearch
   class Query
     class Field
-      attr_reader :ranges, :ops
+      attr_reader :ranges, :ops, :condition
 
       def initialize(name)
         @name  = name
@@ -9,6 +9,24 @@ module Elasticsearch
         @ranges = {}
         @ops    = {}
       end
+
+      def must
+        @condition = :must
+        self
+      end
+      alias_method :must_be, :must
+
+      def must_not
+        @condition = :must_not
+        self
+      end
+      alias_method :must_not_be, :must_not
+
+      def should
+        @condition = :should
+        self
+      end
+      alias_method :should_be, :should
 
       def gt(val)
         range :gt, val
@@ -30,6 +48,7 @@ module Elasticsearch
         op :term, val
       end
       alias_method :equals, :is
+      alias_method :be, :is
 
       def match(text, options = {})
         options[:query] = text
@@ -44,17 +63,19 @@ module Elasticsearch
         end
       end
 
-      def all_of(t)
+      def match_all(t)
         terms t, t.length
       end
-      alias_method :all, :all_of
+      alias_method :all_of, :match_all
+      alias_method :all, :match_all
 
-      def any_of(t)
+      def match_any(t)
         terms t, 1
       end
-      alias_method :in, :any_of
+      alias_method :any_of, :match_any
+      alias_method :in, :match_any
 
-      def terms(t, number)
+      def match_at_least(t, number)
         @ops[:terms] ||= []
         @ops[:terms] << {@name => t, :minimum_should_match => number}
       end

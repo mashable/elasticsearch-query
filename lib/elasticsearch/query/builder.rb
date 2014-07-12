@@ -35,7 +35,12 @@ module Elasticsearch
         d = @data.deep_dup
 
         @fields.each do |field|
-          d.deep_merge! field.as_json
+          if field.condition
+            d[:bool][field.condition] ||= []
+            d[:bool][field.condition] << field.as_json
+          else
+            d.deep_merge! field.as_json
+          end
         end
         if @use_default_context
           { query: Utils.as_json(d) }
@@ -71,6 +76,14 @@ module Elasticsearch
 
       def aggregate(&block)
         @data[:aggs] ||= Aggregate.new(&block)
+      end
+
+      def method_missing(method, *args)
+        if args.empty?
+          field method
+        else
+          super
+        end
       end
 
       private
