@@ -66,7 +66,7 @@ module Elasticsearch
       def filter(&block)
         q = Filter.new
         q.instance_exec &block
-        add :filtered, Utils.as_json(q)
+        add :filtered, q
       end
 
       def sort(field, options_or_value)
@@ -125,6 +125,12 @@ module Elasticsearch
         end
       end
 
+      # def dismax(options = {}, &block)
+      #   subquery = Builder.new(false)
+      #   @data[:dis_max] ||= []
+      #   @data[:dis_max] << options.merge(query: subquery)
+      # end
+
       private
 
       def with_default_context(&block)
@@ -140,7 +146,7 @@ module Elasticsearch
         @data[:bool] ||= {}
         @data[:bool][mode] ||= []
         subquery.instance_exec(&block)
-        @data[:bool][mode].push Utils.as_json(subquery)
+        @data[:bool][mode].push subquery
         self
       end
 
