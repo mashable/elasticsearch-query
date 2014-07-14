@@ -5,7 +5,7 @@
     end
 
     def method_missing(method, *args)
-      @aggregations << AggregateField.new(method, *args)
+      AggregateField.new(method, *args).tap {|f| @aggregations << f }
     end
 
     def as_json

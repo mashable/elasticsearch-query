@@ -63,14 +63,22 @@ module Elasticsearch
         end
       end
 
+      def phrase(text)
+        match text, phrase: true
+      end
+
+      def phrase_prefix(text)
+        match text, phrase: true, prefix: true
+      end
+
       def match_all(t)
-        terms t, t.length
+        match_at_least t, t.length
       end
       alias_method :all_of, :match_all
       alias_method :all, :match_all
 
       def match_any(t)
-        terms t, 1
+        match_at_least t, 1
       end
       alias_method :any_of, :match_any
       alias_method :in, :match_any
@@ -82,7 +90,12 @@ module Elasticsearch
 
       def regex(regex)
         @ops[:regex] ||= []
-        @ops[:regex] << {@name => regex}
+        case regex
+        when String
+          @ops[:regex] << {@name => regex.to_s}
+        when Regexp
+          @ops[:regex] << {@name => regex.source}
+        end
       end
 
       def as_json

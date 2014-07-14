@@ -4,3 +4,4 @@ source 'https://rubygems.org'
 gemspec
 
 gem "rspec"
+gem 'simplecov', '~> 0.7.1'
